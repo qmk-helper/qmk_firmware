@@ -3,8 +3,8 @@
 import json
 import os
 import platform
-import subprocess
 from subprocess import PIPE  # noqa, so other submodules doesn't need to
+from subprocess import run as sprun
 import shlex
 import shutil
 
@@ -84,4 +84,4 @@ def run(command, *args, **kwargs):
         safecmd = ' '.join(safecmd)
         command = [os.environ['SHELL'], '-c', safecmd]
 
-    return subprocess.run(command, *args, **kwargs)
+    return sprun(command, *args, **kwargs)
