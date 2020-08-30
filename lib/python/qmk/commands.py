@@ -9,6 +9,7 @@ from subprocess import run as sprun
 import shlex
 import shutil
 
+from milc import cli
 import qmk.keymap
 
 
@@ -85,4 +86,6 @@ def run(command, *args, **kwargs):
         safecmd = ' '.join(safecmd)
         command = [os.environ['SHELL'], '-c', safecmd]
 
-    return sprun(command, *args, **kwargs)
+    cli.log.debug('Running command: %s', command)
+
+    return subprocess.run(command, *args, **kwargs)
