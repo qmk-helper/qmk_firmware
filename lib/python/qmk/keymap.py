@@ -1,17 +1,15 @@
 """Functions that help you work with QMK keymaps.
 """
-from pathlib import Path
 import json
+from pathlib import Path
 
+import qmk.commands
+import qmk.path
+from milc import cli
+from pygments import lex
 from pygments.lexers.c_cpp import CLexer
 from pygments.token import Token
-from pygments import lex
-
-from milc import cli
-
 from qmk.keyboard import rules_mk
-import qmk.path
-import qmk.commands
 
 # The `keymap.c` template to use when a keyboard doesn't have its own
 DEFAULT_KEYMAP_C = """#include QMK_KEYBOARD_H
@@ -196,7 +194,7 @@ def list_keymaps(keyboard):
     """
     # parse all the rules.mk files for the keyboard
     rules = rules_mk(keyboard)
-    names = set()
+    names = []
 
     if rules:
         # qmk_firmware/keyboards
@@ -207,8 +205,9 @@ def list_keymaps(keyboard):
         # and collect all directories' name with keymap.c file in it
         while kb_path != keyboards_dir:
             keymaps_dir = kb_path / "keymaps"
-            if keymaps_dir.exists():
-                names = names.union([keymap.name for keymap in keymaps_dir.iterdir() if is_keymap_dir(keymap)])
+            if keymaps_dir.exists():  
+                test = [{"name": keymap.name,"path":str(keymaps_dir)+"/"+keymap.name} for keymap in keymaps_dir.iterdir() if is_keymap_dir(keymap)]                
+                names += test
             kb_path = kb_path.parent
 
         # if community layouts are supported, get them
@@ -216,10 +215,9 @@ def list_keymaps(keyboard):
             for layout in rules["LAYOUTS"].split():
                 cl_path = Path('layouts/community') / layout
                 if cl_path.exists():
-                    names = names.union([keymap.name for keymap in cl_path.iterdir() if is_keymap_dir(keymap)])
+                    names += [{"name" : keymap.name,"path":str(cl_path)+"/"+keymap.name} for keymap in cl_path.iterdir() if is_keymap_dir(keymap)]
 
-    return sorted(names)
-
+    return names
 
 def _c_preprocess(path):
     """ Run a file through the C pre-processor
@@ -392,8 +390,7 @@ def c2json(keyboard, keymap_file, use_cpp=True):
     Returns:
         a dictionary in keymap.json format
     """
-    keymap_json = parse_keymap_c(keymap_file, use_cpp)
-
+    keymap_json = parse_keymap_c(keymap_file, use_cpp)   
     dirty_layers = keymap_json.pop('layers', None)
     keymap_json['layers'] = list()
     for layer in dirty_layers:

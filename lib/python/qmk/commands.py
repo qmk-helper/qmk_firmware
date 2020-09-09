@@ -88,4 +88,4 @@ def run(command, *args, **kwargs):
 
     cli.log.debug('Running command: %s', command)
 
-    return subprocess.run(command, *args, **kwargs)
+    return sprun(command, *args, **kwargs)

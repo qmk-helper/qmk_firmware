@@ -1,8 +1,8 @@
 """List the keyboards currently defined within QMK
 """
 # We avoid pathlib here because this is performance critical code.
-import os
 import glob
+import os
 
 from milc import cli
 
@@ -24,5 +24,4 @@ def list_keyboards(cli):
     paths = [path for path in glob.iglob(KB_WILDCARD, recursive=True) if 'keymaps' not in path]
 
     # Extract the keyboard name from the path and print it
-    for keyboard_name in sorted(map(find_name, paths)):
-        print(keyboard_name)
+    return sorted(map(find_name, paths))
