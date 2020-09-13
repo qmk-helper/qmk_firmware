@@ -66,24 +66,30 @@ def c2json(cli):
 
 
 @cli.subcommand('Generates all keymap json for all keyboards')
-def stupid(cli):  
+def create_all_keymaps(cli):  
+    # keyboards= ["zvecr/zv48/f411"]
     keyboards= qmk.cli.list.keyboards.list_keyboards("")
     if(keyboards):        
         for keyboard in keyboards:            
             keymaps = qmk.keymap.list_keymaps(keyboard)
+
             if(keymaps):
-                for keymap in keymaps:                  
+                # print(keymaps)
+                for keymap in keymaps:             
+                    # print(keymap)     
                     keymap_path= qmk.path.normpath(keymap["path"]+"/keymap.c")
                     if not keymap_path.exists():
                         cli.log.error(keyboard+" | "+keymap["name"]+': C file does not exist')
                         keymap["error"]="No C file"
-                        break                    
+                        continue
+                                            
                     try:
                         keymap_json = qmk.keymap.c2json(keyboard, keymap_path, use_cpp=True)
                     except UnicodeDecodeError:
                         cli.log.error(keyboard+" | "+keymap["name"]+': Unable to decode unicode')
                         keymap["error"]="Unicode Decode Error"
-                        break                    
+                        continue
+                                            
                     try:
                         keymap_json = qmk.keymap.generate(keymap_json['keyboard'], keymap_json['layout'], keymap_json['layers'], type='json')
                     except KeyError:        
@@ -95,12 +101,14 @@ def stupid(cli):
                             except UnicodeDecodeError:
                                 cli.log.error(keyboard+" | "+keymap["name"]+': Unable to decode unicode')
                                 keymap["error"]="Unicode Decode Error"
-                                break     
+                                continue
+                                     
                             keymap_json = qmk.keymap.generate(keymap_json['keyboard'], keymap_json['layout'], keymap_json['layers'], type='json')
                         except KeyError:        
                             cli.log.error(keyboard+" | "+keymap["name"]+': Something went wrong. Failed on keymap')
                             keymap["error"]="Unknown Error"
-                            break
+                            continue
+                            
                     keymap_json['keymap']= keymap['name']
                     output_path=qmk.path.normpath("keymaps/"+keyboard+"/"+keymap["name"]+".keymap.json")
                     if output_path:

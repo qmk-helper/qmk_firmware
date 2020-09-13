@@ -183,6 +183,7 @@ def locate_keymap(keyboard, keymap):
                     return community_layout / 'keymap.c'
 
 
+
 def list_keymaps(keyboard):
     """ List the available keymaps for a keyboard.
 
@@ -215,8 +216,7 @@ def list_keymaps(keyboard):
             for layout in rules["LAYOUTS"].split():
                 cl_path = Path('layouts/community') / layout
                 if cl_path.exists():
-                    names += [{"name" : keymap.name,"path":str(cl_path)+"/"+keymap.name} for keymap in cl_path.iterdir() if is_keymap_dir(keymap)]
-
+                    names += [{"name" : keymap.name,"path":str(cl_path)+"/"+keymap.name} for keymap in cl_path.iterdir() if is_keymap_dir(keymap)]  
     return names
 
 def _c_preprocess(path):
@@ -247,7 +247,9 @@ def _get_layers(keymap):  # noqa C901 : until someone has a good idea how to sim
     keymap_certainty = brace_depth = 0
     is_keymap = is_layer = is_adv_kc = False
     layer = dict(name=False, layout=False, keycodes=list())
+    # print(lex(keymap, CLexer()))
     for line in lex(keymap, CLexer()):
+        # print(line)
         if line[0] is Token.Name:
             if is_keymap:
                 # If we are inside the keymap array
@@ -276,8 +278,12 @@ def _get_layers(keymap):  # noqa C901 : until someone has a good idea how to sim
                         # If we are inside an advanced keycode
                         # collect everything and hope the user
                         # knew what he/she was doing
+                        # print("a")
+                        # print(kc)
                         layer['keycodes'][-1] += kc
                     else:
+                        # print("b")
+                        # print(kc)
                         layer['keycodes'].append(kc)
 
         # The keymaps array's signature:
@@ -305,9 +311,10 @@ def _get_layers(keymap):  # noqa C901 : until someone has a good idea how to sim
                 if is_keymap:
                     if is_layer:
                         # We found the beginning of a non-basic keycode
-                        is_adv_kc = True
+                        is_adv_kc = True                     
                         layer['keycodes'][-1] += line[1]
                     elif line[1] == '(' and brace_depth == 2:
+                        
                         # We found the beginning of a layer
                         is_layer = True
                 elif line[1] == '{' and keymap_certainty == 6:
@@ -316,7 +323,7 @@ def _get_layers(keymap):  # noqa C901 : until someone has a good idea how to sim
             elif line[1] in closing_braces:
                 brace_depth -= 1
                 if is_keymap:
-                    if is_adv_kc:
+                    if is_adv_kc:                        
                         layer['keycodes'][-1] += line[1]
                         if brace_depth == 2:
                             # We found the end of a non-basic keycode
@@ -335,19 +342,22 @@ def _get_layers(keymap):  # noqa C901 : until someone has a good idea how to sim
                 # e.g.: MT(MOD_LCTL | MOD_LSFT, KC_ESC)
                 layer['keycodes'][-1] += line[1]
 
-        elif line[0] is Token.Literal.Number.Integer and is_keymap:
-            # If the pre-processor finds the 'meaning' of the layer names,
-            # they will be numbers
-            if not layer['name']:
-                layer['name'] = line[1]
+        
 
         else:
+            # print("XXXXXXXXXXXXXXXXXXXXXX")
+            # print(line)
             # We only care about
             # operators and such if we
             # are inside an advanced keycode
             # e.g.: MT(MOD_LCTL | MOD_LSFT, KC_ESC)
             if is_adv_kc:
                 layer['keycodes'][-1] += line[1]
+            elif line[0] is Token.Literal.Number.Integer and is_keymap:
+                # If the pre-processor finds the 'meaning' of the layer names,
+                # they will be numbers
+                if not layer['name']:
+                    layer['name'] = line[1]
 
     return layers
 
