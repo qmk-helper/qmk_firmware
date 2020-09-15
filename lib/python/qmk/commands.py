@@ -3,14 +3,14 @@
 import json
 import os
 import platform
+import shlex
+import shutil
 from subprocess import PIPE  # noqa, so other submodules doesn't need to
 from subprocess import STDOUT  # noqa, so other submodules doesn't need to
 from subprocess import run as sprun
-import shlex
-import shutil
 
-from milc import cli
 import qmk.keymap
+from milc import cli
 
 
 def create_make_command(keyboard, keymap, target=None):
@@ -85,7 +85,5 @@ def run(command, *args, **kwargs):
         safecmd = map(shlex.quote, command)
         safecmd = ' '.join(safecmd)
         command = [os.environ['SHELL'], '-c', safecmd]
-
-    cli.log.debug('Running command: %s', command)
 
     return sprun(command, *args, **kwargs)

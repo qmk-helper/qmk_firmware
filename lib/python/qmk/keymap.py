@@ -3,12 +3,13 @@
 import json
 from pathlib import Path
 
-import qmk.commands
-import qmk.path
-from milc import cli
 from pygments import lex
 from pygments.lexers.c_cpp import CLexer
 from pygments.token import Token
+
+import qmk.commands
+import qmk.path
+from milc import cli
 from qmk.keyboard import rules_mk
 
 # The `keymap.c` template to use when a keyboard doesn't have its own
@@ -74,7 +75,7 @@ def is_keymap_dir(keymap):
             return True
 
 
-def generate(keyboard, layout, layers, type='c'):
+def generate(keyboard, layout, layers, type='c', keymap=None):
     """Returns a `keymap.c` or `keymap.json` for the specified keyboard, layout, and layers.
 
     Args:
@@ -92,6 +93,7 @@ def generate(keyboard, layout, layers, type='c'):
     """
     new_keymap = template(keyboard, type)
     if type == 'json':
+        new_keymap['keymap'] = keymap
         new_keymap['layout'] = layout
         new_keymap['layers'] = layers
     else:
@@ -219,6 +221,9 @@ def list_keymaps(keyboard):
                     names += [{"name" : keymap.name,"path":str(cl_path)+"/"+keymap.name} for keymap in cl_path.iterdir() if is_keymap_dir(keymap)]  
     return names
 
+    return sorted(names)
+
+
 def _c_preprocess(path):
     """ Run a file through the C pre-processor
 
@@ -247,9 +252,7 @@ def _get_layers(keymap):  # noqa C901 : until someone has a good idea how to sim
     keymap_certainty = brace_depth = 0
     is_keymap = is_layer = is_adv_kc = False
     layer = dict(name=False, layout=False, keycodes=list())
-    # print(lex(keymap, CLexer()))
     for line in lex(keymap, CLexer()):
-        # print(line)
         if line[0] is Token.Name:
             if is_keymap:
                 # If we are inside the keymap array
@@ -278,12 +281,8 @@ def _get_layers(keymap):  # noqa C901 : until someone has a good idea how to sim
                         # If we are inside an advanced keycode
                         # collect everything and hope the user
                         # knew what he/she was doing
-                        # print("a")
-                        # print(kc)
                         layer['keycodes'][-1] += kc
                     else:
-                        # print("b")
-                        # print(kc)
                         layer['keycodes'].append(kc)
 
         # The keymaps array's signature:
@@ -311,10 +310,9 @@ def _get_layers(keymap):  # noqa C901 : until someone has a good idea how to sim
                 if is_keymap:
                     if is_layer:
                         # We found the beginning of a non-basic keycode
-                        is_adv_kc = True                     
+                        is_adv_kc = True
                         layer['keycodes'][-1] += line[1]
                     elif line[1] == '(' and brace_depth == 2:
-                        
                         # We found the beginning of a layer
                         is_layer = True
                 elif line[1] == '{' and keymap_certainty == 6:
@@ -323,7 +321,7 @@ def _get_layers(keymap):  # noqa C901 : until someone has a good idea how to sim
             elif line[1] in closing_braces:
                 brace_depth -= 1
                 if is_keymap:
-                    if is_adv_kc:                        
+                    if is_adv_kc:
                         layer['keycodes'][-1] += line[1]
                         if brace_depth == 2:
                             # We found the end of a non-basic keycode
@@ -342,22 +340,19 @@ def _get_layers(keymap):  # noqa C901 : until someone has a good idea how to sim
                 # e.g.: MT(MOD_LCTL | MOD_LSFT, KC_ESC)
                 layer['keycodes'][-1] += line[1]
 
-        
+        elif line[0] is Token.Literal.Number.Integer and is_keymap and not is_adv_kc:
+            # If the pre-processor finds the 'meaning' of the layer names,
+            # they will be numbers
+            if not layer['name']:
+                layer['name'] = line[1]
 
         else:
-            # print("XXXXXXXXXXXXXXXXXXXXXX")
-            # print(line)
             # We only care about
             # operators and such if we
             # are inside an advanced keycode
             # e.g.: MT(MOD_LCTL | MOD_LSFT, KC_ESC)
             if is_adv_kc:
                 layer['keycodes'][-1] += line[1]
-            elif line[0] is Token.Literal.Number.Integer and is_keymap:
-                # If the pre-processor finds the 'meaning' of the layer names,
-                # they will be numbers
-                if not layer['name']:
-                    layer['name'] = line[1]
 
     return layers
 
@@ -385,11 +380,13 @@ def parse_keymap_c(keymap_file, use_cpp=True):
     return keymap
 
 
-def c2json(keyboard, keymap_file, use_cpp=True):
+def c2json(keyboard, keymap, keymap_file, use_cpp=True):
     """ Convert keymap.c to keymap.json
 
     Args:
         keyboard: The name of the keyboard
+
+        keymap: The name of the keymap
 
         layout: The LAYOUT macro this keymap uses.
 
@@ -400,7 +397,8 @@ def c2json(keyboard, keymap_file, use_cpp=True):
     Returns:
         a dictionary in keymap.json format
     """
-    keymap_json = parse_keymap_c(keymap_file, use_cpp)   
+    keymap_json = parse_keymap_c(keymap_file, use_cpp)
+
     dirty_layers = keymap_json.pop('layers', None)
     keymap_json['layers'] = list()
     for layer in dirty_layers:
@@ -411,4 +409,5 @@ def c2json(keyboard, keymap_file, use_cpp=True):
         keymap_json['layers'].append(layer.pop('keycodes'))
 
     keymap_json['keyboard'] = keyboard
+    keymap_json['keymap'] = keymap
     return keymap_json
