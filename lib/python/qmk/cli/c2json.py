@@ -109,7 +109,7 @@ def create_keymaps(keyboard):
                 continue
 
             try:
-                keymap_json = qmk.keymap.generate(keymap_json['keyboard'], keymap_json['layout'], keymap_json['layers'], type='json', keymap=keymap_json['keymap'])
+                keymap_json = qmk.keymap.generate_json(  keymap_json['keymap'], keymap_json['keyboard'], keymap_json['layout'], keymap_json['layers'])
             except KeyError:
                 # cli.log.warning(keyboard + " | " + keymap["name"] + ': Something went wrong. Retrying with --no-cpp')
                 keymap["no-cpp"] = True
@@ -121,7 +121,7 @@ def create_keymaps(keyboard):
                         keymap["error"] = "Unicode Decode Error"
                         continue
 
-                    keymap_json = qmk.keymap.generate(keymap_json['keyboard'], keymap_json['layout'], keymap_json['layers'], type='json', keymap=keymap_json['keymap'])
+                    keymap_json = qmk.keymap.generate_json( keymap_json['keymap'],keymap_json['keyboard'], keymap_json['layout'], keymap_json['layers'])
                 except KeyError:
                     # cli.log.error(keyboard + " | " + keymap["name"] + ': Something went wrong. Failed on keymap')
                     keymap["error"] = "Unknown Error"

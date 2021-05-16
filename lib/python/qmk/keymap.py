@@ -304,60 +304,40 @@ def locate_keymap(keyboard, keymap):
                     return community_layout / 'keymap.c'
 
 
-def list_keymaps(keyboard, c=True, json=True, additional_files=None, fullpath=False):
-    """List the available keymaps for a keyboard.
+def list_keymaps(keyboard):
+    """ List the available keymaps for a keyboard.
 
     Args:
-        keyboard
-            The keyboards full name with vendor and revision if necessary, example: clueboard/66/rev3
-
-        c
-            When true include `keymap.c` keymaps.
-
-        json
-            When true include `keymap.json` keymaps.
-
-        additional_files
-            A sequence of additional filenames to check against to determine if a directory is a keymap. All files must exist for a match to happen. For example, if you want to match a C keymap with both a `config.h` and `rules.mk` file: `is_keymap_dir(keymap_dir, json=False, additional_files=['config.h', 'rules.mk'])`
-
-        fullpath
-            When set to True the full path of the keymap relative to the `qmk_firmware` root will be provided.
+        keyboard: the keyboards full name with vendor and revision if necessary, example: clueboard/66/rev3
 
     Returns:
-        a sorted list of valid keymap names.
+        a set with the names of the available keymaps
     """
     # parse all the rules.mk files for the keyboard
     rules = rules_mk(keyboard)
-    names = set()
+    names = []
 
     if rules:
+        # qmk_firmware/keyboards
         keyboards_dir = Path('keyboards')
+        # path to the keyboard's directory
         kb_path = keyboards_dir / keyboard
-
         # walk up the directory tree until keyboards_dir
         # and collect all directories' name with keymap.c file in it
         while kb_path != keyboards_dir:
             keymaps_dir = kb_path / "keymaps"
-
-            if keymaps_dir.is_dir():
-                for keymap in keymaps_dir.iterdir():
-                    if is_keymap_dir(keymap, c, json, additional_files):
-                        keymap = keymap if fullpath else keymap.name
-                        names.add(keymap)
-
+            if keymaps_dir.exists():
+                test = [{"name": keymap.name,"path":str(keymaps_dir)+"/"+keymap.name} for keymap in keymaps_dir.iterdir() if is_keymap_dir(keymap)]
+                names += test
             kb_path = kb_path.parent
 
         # if community layouts are supported, get them
         if "LAYOUTS" in rules:
             for layout in rules["LAYOUTS"].split():
                 cl_path = Path('layouts/community') / layout
-                if cl_path.is_dir():
-                    for keymap in cl_path.iterdir():
-                        if is_keymap_dir(keymap, c, json, additional_files):
-                            keymap = keymap if fullpath else keymap.name
-                            names.add(keymap)
-
-    return sorted(names)
+                if cl_path.exists():
+                    names += [{"name" : keymap.name,"path":str(cl_path)+"/"+keymap.name} for keymap in cl_path.iterdir() if is_keymap_dir(keymap)]
+    return names
 
 
 def _c_preprocess(path, stdin=None):
