@@ -9,7 +9,14 @@ from pathlib import Path
 import qmk.path
 from milc import cli
 
-import qmk.keyboard
+BASE_PATH = os.path.join(os.getcwd(), "keyboards") + os.path.sep
+KB_WILDCARD = os.path.join(BASE_PATH, "**", "rules.mk")
+
+
+def find_name(path):
+    """Determine the keyboard name by stripping off the base_path and rules.mk.
+    """
+    return path.replace(BASE_PATH, "").replace(os.path.sep + "rules.mk", "")
 
 
 def locate_info_json(keyboard):

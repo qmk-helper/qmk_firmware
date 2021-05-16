@@ -7,7 +7,7 @@ import shlex
 import shutil
 from pathlib import Path
 from time import strftime
-
+import subprocess
 from milc import cli
 
 import qmk.keymap

@@ -6,13 +6,12 @@ import sys
 from pathlib import Path
 
 import argcomplete
+import qmk.commands
+import qmk.path
 from milc import cli
+from pygments import lex
 from pygments.lexers.c_cpp import CLexer
 from pygments.token import Token
-from pygments import lex
-
-import qmk.path
-import qmk.commands
 from qmk.keyboard import find_keyboard_from_dir, rules_mk
 
 # The `keymap.c` template to use when a keyboard doesn't have its own
@@ -34,9 +33,6 @@ def template_json(keyboard):
     """Returns a `keymap.json` template for a keyboard.
 
     If a template exists in `keyboards/<keyboard>/templates/keymap.json` that text will be used instead of an empty dictionary.
-
-    If a template exists in `keyboards/<keyboard>/templates/keymap.json` that
-    text will be used instead of an empty dictionary.
 
     Args:
         keyboard
@@ -245,29 +241,7 @@ def write_json(keyboard, keymap, layout, layers):
     return write_file(keymap_file, keymap_content)
 
 
-        type
-            'json' for `keymap.json` and 'c' (or anything else) for `keymap.c`
-    """
-    new_keymap = template(keyboard, type)
-    if type == 'json':
-        new_keymap['keymap'] = keymap
-        new_keymap['layout'] = layout
-        new_keymap['layers'] = layers
-    else:
-        layer_txt = []
-        for layer_num, layer in enumerate(layers):
-            if layer_num != 0:
-                layer_txt[-1] = layer_txt[-1] + ','
-            layer_keys = ', '.join(layer)
-            layer_txt.append('\t[%s] = %s(%s)' % (layer_num, layout, layer_keys))
-
-        keymap = '\n'.join(layer_txt)
-        new_keymap = new_keymap.replace('__KEYMAP_GOES_HERE__', keymap)
-
-    return new_keymap
-
-
-def write(keyboard, keymap, layout, layers, type='c'):
+def write(keyboard, keymap, layout, layers):
     """Generate the `keymap.c` and write it to disk.
 
     Returns the filename written to.
@@ -284,9 +258,6 @@ def write(keyboard, keymap, layout, layers, type='c'):
 
         layers
             An array of arrays describing the keymap. Each item in the inner array should be a string that is a valid QMK keycode.
-
-        type
-            'json' for `keymap.json` and 'c' (or anything else) for `keymap.c`
     """
     keymap_content = generate_c(keyboard, layout, layers)
     keymap_file = qmk.path.keymap(keyboard) / keymap / 'keymap.c'
@@ -357,7 +328,7 @@ def list_keymaps(keyboard, c=True, json=True, additional_files=None, fullpath=Fa
     """
     # parse all the rules.mk files for the keyboard
     rules = rules_mk(keyboard)
-    names = []
+    names = set()
 
     if rules:
         keyboards_dir = Path('keyboards')
