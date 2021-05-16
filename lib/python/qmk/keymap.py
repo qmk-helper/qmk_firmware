@@ -1,18 +1,6 @@
 """Functions that help you work with QMK keymaps.
 """
 import json
-<<<<<<< HEAD
-from pathlib import Path
-
-from pygments import lex
-from pygments.lexers.c_cpp import CLexer
-from pygments.token import Token
-
-import qmk.commands
-import qmk.path
-from milc import cli
-from qmk.keyboard import rules_mk
-=======
 import subprocess
 import sys
 from pathlib import Path
@@ -26,7 +14,6 @@ from pygments import lex
 import qmk.path
 import qmk.commands
 from qmk.keyboard import find_keyboard_from_dir, rules_mk
->>>>>>> master
 
 # The `keymap.c` template to use when a keyboard doesn't have its own
 DEFAULT_KEYMAP_C = """#include QMK_KEYBOARD_H
@@ -43,13 +30,8 @@ __KEYMAP_GOES_HERE__
 """
 
 
-<<<<<<< HEAD
-def template(keyboard, type='c'):
-    """Returns the `keymap.c` or `keymap.json` template for a keyboard.
-=======
 def template_json(keyboard):
     """Returns a `keymap.json` template for a keyboard.
->>>>>>> master
 
     If a template exists in `keyboards/<keyboard>/templates/keymap.json` that text will be used instead of an empty dictionary.
 
@@ -59,23 +41,6 @@ def template_json(keyboard):
     Args:
         keyboard
             The keyboard to return a template for.
-<<<<<<< HEAD
-
-        type
-            'json' for `keymap.json` and 'c' (or anything else) for `keymap.c`
-    """
-    if type == 'json':
-        template_file = Path('keyboards/%s/templates/keymap.json' % keyboard)
-        template = {'keyboard': keyboard}
-        if template_file.exists():
-            template.update(json.loads(template_file.read_text()))
-    else:
-        template_file = Path('keyboards/%s/templates/keymap.c' % keyboard)
-        if template_file.exists():
-            template = template_file.read_text()
-        else:
-            template = DEFAULT_KEYMAP_C
-=======
     """
     template_file = Path('keyboards/%s/templates/keymap.json' % keyboard)
     template = {'keyboard': keyboard}
@@ -99,7 +64,6 @@ def template_c(keyboard):
         template = template_file.read_text(encoding='utf-8')
     else:
         template = DEFAULT_KEYMAP_C
->>>>>>> master
 
     return template
 
@@ -195,9 +159,6 @@ def is_keymap_dir(keymap, c=True, json=True, additional_files=None):
             return True
 
 
-<<<<<<< HEAD
-def generate(keyboard, layout, layers, type='c', keymap=None):
-=======
 def generate_json(keymap, keyboard, layout, layers):
     """Returns a `keymap.json` for the specified keyboard, layout, and layers.
 
@@ -223,7 +184,6 @@ def generate_json(keymap, keyboard, layout, layers):
 
 
 def generate_c(keyboard, layout, layers):
->>>>>>> master
     """Returns a `keymap.c` or `keymap.json` for the specified keyboard, layout, and layers.
 
     Args:
@@ -235,8 +195,6 @@ def generate_c(keyboard, layout, layers):
 
         layers
             An array of arrays describing the keymap. Each item in the inner array should be a string that is a valid QMK keycode.
-<<<<<<< HEAD
-=======
     """
     new_keymap = template_c(keyboard)
     layer_txt = []
@@ -286,7 +244,6 @@ def write_json(keyboard, keymap, layout, layers):
 
     return write_file(keymap_file, keymap_content)
 
->>>>>>> master
 
         type
             'json' for `keymap.json` and 'c' (or anything else) for `keymap.c`
@@ -331,26 +288,10 @@ def write(keyboard, keymap, layout, layers, type='c'):
         type
             'json' for `keymap.json` and 'c' (or anything else) for `keymap.c`
     """
-<<<<<<< HEAD
-    keymap_content = generate(keyboard, layout, layers, type)
-    if type == 'json':
-        keymap_file = qmk.path.keymap(keyboard) / keymap / 'keymap.json'
-        keymap_content = json.dumps(keymap_content)
-    else:
-        keymap_file = qmk.path.keymap(keyboard) / keymap / 'keymap.c'
-
-    keymap_file.parent.mkdir(parents=True, exist_ok=True)
-    keymap_file.write_text(keymap_content)
-
-    cli.log.info('Wrote keymap to {fg_cyan}%s', keymap_file)
-
-    return keymap_file
-=======
     keymap_content = generate_c(keyboard, layout, layers)
     keymap_file = qmk.path.keymap(keyboard) / keymap / 'keymap.c'
 
     return write_file(keymap_file, keymap_content)
->>>>>>> master
 
 
 def locate_keymap(keyboard, keymap):
@@ -392,14 +333,8 @@ def locate_keymap(keyboard, keymap):
                     return community_layout / 'keymap.c'
 
 
-<<<<<<< HEAD
-
-def list_keymaps(keyboard):
-    """ List the available keymaps for a keyboard.
-=======
 def list_keymaps(keyboard, c=True, json=True, additional_files=None, fullpath=False):
     """List the available keymaps for a keyboard.
->>>>>>> master
 
     Args:
         keyboard
@@ -432,11 +367,6 @@ def list_keymaps(keyboard, c=True, json=True, additional_files=None, fullpath=Fa
         # and collect all directories' name with keymap.c file in it
         while kb_path != keyboards_dir:
             keymaps_dir = kb_path / "keymaps"
-<<<<<<< HEAD
-            if keymaps_dir.exists():  
-                test = [{"name": keymap.name,"path":str(keymaps_dir)+"/"+keymap.name} for keymap in keymaps_dir.iterdir() if is_keymap_dir(keymap)]                
-                names += test
-=======
 
             if keymaps_dir.is_dir():
                 for keymap in keymaps_dir.iterdir():
@@ -444,51 +374,32 @@ def list_keymaps(keyboard, c=True, json=True, additional_files=None, fullpath=Fa
                         keymap = keymap if fullpath else keymap.name
                         names.add(keymap)
 
->>>>>>> master
             kb_path = kb_path.parent
 
         # if community layouts are supported, get them
         if "LAYOUTS" in rules:
             for layout in rules["LAYOUTS"].split():
                 cl_path = Path('layouts/community') / layout
-<<<<<<< HEAD
-                if cl_path.exists():
-                    names += [{"name" : keymap.name,"path":str(cl_path)+"/"+keymap.name} for keymap in cl_path.iterdir() if is_keymap_dir(keymap)]  
-    return names
-=======
                 if cl_path.is_dir():
                     for keymap in cl_path.iterdir():
                         if is_keymap_dir(keymap, c, json, additional_files):
                             keymap = keymap if fullpath else keymap.name
                             names.add(keymap)
->>>>>>> master
 
     return sorted(names)
 
 
-<<<<<<< HEAD
-def _c_preprocess(path):
-    """ Run a file through the C pre-processor
-
-    Args:
-        path: path of the keymap.c file
-=======
 def _c_preprocess(path, stdin=None):
     """ Run a file through the C pre-processor
 
     Args:
         path: path of the keymap.c file (set None to use stdin)
         stdin: stdin pipe (e.g. sys.stdin)
->>>>>>> master
 
     Returns:
         the stdout of the pre-processor
     """
-<<<<<<< HEAD
-    pre_processed_keymap = qmk.commands.run(['cpp', path], stdout=qmk.commands.PIPE, stderr=qmk.commands.PIPE, universal_newlines=True)
-=======
     pre_processed_keymap = qmk.commands.run(['cpp', path] if path else ['cpp'], stdin=stdin, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
->>>>>>> master
     return pre_processed_keymap.stdout
 
 
@@ -618,23 +529,13 @@ def parse_keymap_c(keymap_file, use_cpp=True):
     Currently only cares about the keymaps array.
 
     Args:
-<<<<<<< HEAD
-        keymap_file: path of the keymap.c file
-=======
         keymap_file: path of the keymap.c file (or '-' to use stdin)
->>>>>>> master
 
         use_cpp: if True, pre-process the file with the C pre-processor
 
     Returns:
         a dictionary containing the parsed keymap
     """
-<<<<<<< HEAD
-    if use_cpp:
-        keymap_file = _c_preprocess(keymap_file)
-    else:
-        keymap_file = keymap_file.read_text()
-=======
     if keymap_file == '-':
         if use_cpp:
             keymap_file = _c_preprocess(None, sys.stdin)
@@ -645,7 +546,6 @@ def parse_keymap_c(keymap_file, use_cpp=True):
             keymap_file = _c_preprocess(keymap_file)
         else:
             keymap_file = keymap_file.read_text(encoding='utf-8')
->>>>>>> master
 
     keymap = dict()
     keymap['layers'] = _get_layers(keymap_file)

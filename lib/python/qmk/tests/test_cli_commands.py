@@ -52,10 +52,6 @@ def test_compile_json():
     check_returncode(result)
 
 
-def test_compile_json():
-    assert check_subcommand('compile', '-kb', 'handwired/onekey/pytest', '-km', 'default_json').returncode == 0
-
-
 def test_flash():
     result = check_subcommand('flash', '-kb', 'handwired/pytest/basic', '-km', 'default', '-n')
     check_returncode(result)

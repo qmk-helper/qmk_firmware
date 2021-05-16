@@ -5,14 +5,6 @@ import os
 import platform
 import shlex
 import shutil
-<<<<<<< HEAD
-from subprocess import PIPE  # noqa, so other submodules doesn't need to
-from subprocess import STDOUT  # noqa, so other submodules doesn't need to
-from subprocess import run as sprun
-
-import qmk.keymap
-from milc import cli
-=======
 from pathlib import Path
 from time import strftime
 
@@ -56,7 +48,6 @@ def create_make_target(target, parallel=1, **env_vars):
     """
     env = []
     make_cmd = _find_make()
->>>>>>> master
 
     for key, value in env_vars.items():
         env.append(f'{key}={value}')
@@ -246,12 +237,6 @@ def run(command, *args, **kwargs):
         safecmd = map(str, command)
         safecmd = map(shlex.quote, safecmd)
         safecmd = ' '.join(safecmd)
-<<<<<<< HEAD
-        command = [os.environ['SHELL'], '-c', safecmd]
-
-    return sprun(command, *args, **kwargs)
-=======
         command = [os.environ.get('SHELL', '/usr/bin/bash'), '-c', safecmd]
 
     return subprocess.run(command, *args, **kwargs)
->>>>>>> master

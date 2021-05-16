@@ -9,29 +9,6 @@ from importlib.util import find_spec
 from pathlib import Path
 from subprocess import run
 
-<<<<<<< HEAD
-from milc import cli
-
-from . import c2json
-from . import cformat
-from . import compile
-from . import config
-from . import docs
-from . import doctor
-from . import flash
-from . import hello
-from . import info
-from . import json
-from . import json2c
-from . import list
-from . import kle2json
-from . import new
-from . import pyformat
-from . import pytest
-
-if sys.version_info[0] != 3 or sys.version_info[1] < 6:
-    cli.log.error('Your Python is too old! Please upgrade to Python 3.6 or later.')
-=======
 from milc import cli, __VERSION__
 from milc.questions import yesno
 
@@ -118,7 +95,6 @@ def _broken_module_imports(requirements):
 
 if sys.version_info[0] != 3 or sys.version_info[1] < 7:
     print('Error: Your Python is too old! Please upgrade to Python 3.7 or later.')
->>>>>>> master
     exit(127)
 
 milc_version = __VERSION__.split('.')
