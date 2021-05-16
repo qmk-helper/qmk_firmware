@@ -1,5 +1,6 @@
 """List the keyboards currently defined within QMK
 """
+<<<<<<< HEAD
 # We avoid pathlib here because this is performance critical code.
 import glob
 import json
@@ -7,16 +8,11 @@ import os
 from pathlib import Path
 
 import qmk.path
+=======
+>>>>>>> master
 from milc import cli
 
-BASE_PATH = os.path.join(os.getcwd(), "keyboards") + os.path.sep
-KB_WILDCARD = os.path.join(BASE_PATH, "**", "rules.mk")
-
-
-def find_name(path):
-    """Determine the keyboard name by stripping off the base_path and rules.mk.
-    """
-    return path.replace(BASE_PATH, "").replace(os.path.sep + "rules.mk", "")
+import qmk.keyboard
 
 
 def locate_info_json(keyboard):
@@ -57,6 +53,7 @@ def test(cli):
 def list_keyboards(cli):
     """List the keyboards currently defined within QMK
     """
+<<<<<<< HEAD
     # find everywhere we have rules.mk where keymaps isn't in the path
     paths = [path for path in glob.iglob(KB_WILDCARD, recursive=True) if 'keymaps' not in path]
 
@@ -73,3 +70,7 @@ def list_keyboards(cli):
     #     print(keyboard_name)
     #     print(locate_info_json(keyboard_name))
     return keyboards
+=======
+    for keyboard_name in qmk.keyboard.list_keyboards():
+        print(keyboard_name)
+>>>>>>> master

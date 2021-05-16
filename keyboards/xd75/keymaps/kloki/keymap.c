@@ -63,6 +63,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   _______,  RGB_VAD, RGB_VAI, _______, _______,_______,_______, _______, _______, _______,_______,_______, _______, _______, _______,
   _______,  _______, _______, _______, _______,_______,_______, _______, _______, _______,_______,_______, _______, _______, _______
  )
+<<<<<<< HEAD
 };
 
 const macro_t *action_get_macro(keyrecord_t *record, uint8_t id, uint8_t opt)
@@ -81,6 +82,8 @@ const macro_t *action_get_macro(keyrecord_t *record, uint8_t id, uint8_t opt)
         break;
       }
     return MACRO_NONE;
+=======
+>>>>>>> master
 };
 
 bool CTRLDOWN = false;
