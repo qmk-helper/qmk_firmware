@@ -1,18 +1,15 @@
 """Generate a keymap.json from a keymap.c file.
 """
 import json
-
-from argcomplete.completers import FilesCompleter
-from milc import cli
-
 import multiprocessing
 import time
 
 import qmk.keymap
 import qmk.path
+from argcomplete.completers import FilesCompleter
+from milc import cli
 from qmk.json_encoders import InfoJSONEncoder
 from qmk.keyboard import keyboard_completer, keyboard_folder
-
 
 
 @cli.argument('--no-cpp', arg_only=True, action='store_false', help='Do not use \'cpp\' on keymap.c')
@@ -92,9 +89,7 @@ def create_keymaps(keyboard):
     keymaps = qmk.keymap.list_keymaps(keyboard)
 
     if(keymaps):
-        # print(keymaps)
         for keymap in keymaps:
-            print(keymap)
             keymap_path = qmk.path.normpath(keymap["path"] + "/keymap.c")
             if not keymap_path.exists():
                 # cli.log.error(keyboard + " | " + keymap["name"] + ': C file does not exist')
@@ -106,6 +101,10 @@ def create_keymaps(keyboard):
             except UnicodeDecodeError:
                 # cli.log.error(keyboard + " | " + keymap["name"] + ': Unable to decode unicode')
                 keymap["error"] = "Unicode Decode Error"
+                continue
+            except:
+                cli.log.error(keyboard + " | " + keymap["name"] + ': Unknown Error')
+                keymap["error"] = "Unknown"
                 continue
 
             try:
